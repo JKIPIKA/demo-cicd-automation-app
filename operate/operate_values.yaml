@@ -1,2 +1,2 @@
 operate:
-  restart: true
+  restart: "true"
