@@ -2,6 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: EventSource
 metadata:
   name: github
+  namespace: argo
 spec:
   service:
     ports:
@@ -16,14 +17,14 @@ spec:
   github:
     argo-combined-app:                          # event name
       repositories:
-        - owner: majoferenc
+        - owner: JKIPIKA
           names:
             - demo-cicd-automation-app
       webhook:
         endpoint: /argo-combined-app
         port: "12000"
         method: POST
-        url: https://9cb4-84-245-120-213.ngrok-free.app
+        url: https://853d-85-159-104-219.ngrok-free.app
       events:
         - "*"
       apiToken:
