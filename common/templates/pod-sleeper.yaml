@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ .Values.global.name }}
+  annotations:
+    local: {{ .Values.global.dummyAnnotation }}
+    extern: {{ .Values.global.dummyAnnotationExtern }}
+    dummyClusterValue: {{ .Values.global.dummyClusterValue }}
+spec:
+  containers:
+  - name: ubuntu
+    image: ubuntu:latest

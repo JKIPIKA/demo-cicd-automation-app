@@ -1,0 +1,4 @@
+global:
+  name: local-values-pod-name
+  dummyAnnotation: local
+  dummyAnnotationExtern: local
