@@ -1,5 +1,6 @@
-### testing workflows vol.3
 # Demo Argo Workflow & ArgoCD App
+The solution was created with focus on Cloud agnostic & On Premise ready pipeline, which can be facilitated even locally.
+
 This repository wants to achieve following CI/CD platform:
 
 ![Target Schema](/docs/target_schema.png)
@@ -10,50 +11,19 @@ This repository wants to achieve following CI/CD platform:
 Install WSL https://learn.microsoft.com/en-us/windows/wsl/install
 
 ## Forking and Configuring Repository for Personal Use
-To use this repository for your own purposes, you'll need to fork it and make several changes to configure it for your own GitHub repository and DockerHub username.
+To use this repository for your own purposes, you'll need to fork it and trigger script `quick_replace.sh`, which will inject all necessary configuration into the pipeline definitions.
 
-Fork the Repository: Fork this repository to your own GitHub account.
-
-Update Workflow YAML:
-
-In .argo/workflow.yaml, change the GitHub repository URL and DockerHub username:
-
-Line 48: `git clone $GIT_REPO_BASE_PATH/majoferenc/demo-cicd-automation-app.git /workspace` -> Change `majoferenc` to your GitHub username.
-
-Line 94: `buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --output type=image,name=docker.io/marianferenc/argo-demo-app:$GIT_HASH,push=true` -> Change `marianferenc` to your DockerHub username.
-
-Line 103: `git clone $GIT_REPO_BASE_PATH/majoferenc/demo-cicd-automation-app.git` -> Change `majoferenc` to your GitHub username.
-
-Update Application Configuration:
-
-In `.argo/application.yaml`, update the repository URL:
-
-Line 13: `repoURL: https://github.com/majoferenc/demo-cicd-automation-app.git` -> Change `majoferenc` to your GitHub username (ensure case sensitivity).
-
-Update Chart Values:
-
-In `chart/values.yaml`, update the DockerHub repository:
-
-Line 7: `repository: docker.io/marianferenc/argo-demo-app` -> Change `marianferenc` to your DockerHub username.
-
-Update sensor configuration for events and webhooks:
-
-In `.argo/sensor.yaml`, update the repository URL:
-
-Line 87: `git clone $GIT_REPO_BASE_PATH/majoferenc/demo-cicd-automation-app.git /workspace` -> Change `majoferenc` to your GitHub username (ensure case sensitivity).
-
-Line 133: `buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=. --local dockerfile=. --output type=image,name=docker.io/marianferenc/argo-demo-app:$GIT_HASH,push=true` -> Change `marianferenc` to your DockerHub username.
-
-Line 142: `git clone $GIT_REPO_BASE_PATH/majoferenc/demo-cicd-automation-app.git` -> Change `majoferenc` to your GitHub username (ensure case sensitivity).
-
-
-After making these changes, your forked repository should be configured for your personal use with updated GitHub and DockerHub references.
-
-### CLI tools via NixOS
-We can install them via NixOS configuration, which is already prepared in this repository in a format of `shell.nix`.
-To start with the installation don't forget to clone this repo first and navigate inside it before starting the installation, otherwise the `shell.nix` file will be not recognized and the CLI tools will be not installed.
+To run the script:
 
     git clone https://github.com/<your-username>/demo-cicd-automation-app.git
+    cd demo-cicd-automation-app
+    sh quick_replace.sh
+
+
+### CLI tools via DevBox
+We can install CLI tools via DevBox configuration, which is already prepared in this repository in a format of `devbox.json`.
+To start with the installation don't forget to navigate to this repo first and navigate inside it before starting the installation, otherwise the `devbox.json` file will be not recognized and the CLI tools will be not installed.
+
     cd demo-cicd-automation-app
 
 We will install following CLI tools:
@@ -74,28 +44,22 @@ We will install following CLI tools:
 - `Taskfile`: Modern Makefile alternative for executing commands locally and remotely written in a popular yaml format.
 - `Ngrok`: A tool for creating secure tunnels to localhost, enabling public access to locally hosted services during development or testing.
 - 
-Via NixOS:
+Via DevBox:
 
-    export NIXPKGS_ALLOW_UNFREE=1
-    curl -L https://nixos.org/nix/install | sh
+    curl -fsSL https://get.jetify.com/devbox | bash​
 
-During the Nix installation you will need to follow on screeen instructions to complete the setup.
-After that you can run Nix shell:
+During the DevBox installation you will need to follow on screeen instructions to complete the setup.
+After that you can run DevBox shell:
 
-    nix-shell
+    devbox shell
 
-Don't forget that every time you want to active nix shell and work with task commands in this repo you need to execute following:
+Don't forget that every time you want to active DevBox shell and work with task commands in this repo you need to execute following:
 
     cd demo-cicd-automation-app
-    export NIXPKGS_ALLOW_UNFREE=1
-    nix-shell
+    devbox shell
 
-To stop using installed packages, just type `exit` command and your Nix session will stop.
+To stop using installed packages, just type `exit` command and your DevBox session will stop.
 Search for more packages on https://search.nixos.org to try them out.
-
-After the workshop to free up Nix storage:
-
-    task clear_nix
 
 ### Setup local k8s cluster (Only if you don't have existing one)
 - Install Rancher Desktop from https://rancherdesktop.io/
@@ -144,28 +108,20 @@ https://argo-cd.readthedocs.io/en/stable/getting_started/
     task install_argocd
 
 ## Setup Docker Hub credentials
-
-    export REGISTRY_SERVER='https://index.docker.io/v1/'
-    export REGISTRY_USER='your-username'
-    export REGISTRY_PASSWORD='your-password'
-    export REGISTRY_EMAIL='your-email'
+Update .env file in this repository. After that call:
 
     task setup_docker_creds
 
 ## Setup Github Credentials
+Update .env file in this repository. After that call:
 
-    export GIT_ACCESS_TOKEN='your-access-token'
     task create_github_creds
 
 ## Access Argo Workflow UI
 
 The Argo Workflow UI can be accessed in two possible ways:
 
-Either you can create the `NodePort` service to make the Argo Workflow UI available permanently on your machine by applying the configuration file:
-    
-    kubectl create -f .argo/argo-nodeport-svc.yaml
-
-After applying the resource, then the Argo Workflow UI will be available on the specified `NodePort`: https://localhost:32009
+The Argo Workflow UI will be available on the specified `NodePort`: https://localhost:32009
 
 Or you can start the port-forward task, to make Argo Workflow UI available temporarily: 
    
@@ -194,7 +150,7 @@ Either you can create the `NodePort` service to make the ArgoCD UI available per
     
     kubectl create -f .argo/argocd-nodeport-svc.yaml
 
-After applying the resource, then the ArgoCD UI will be available on the specified `NodePort`: https://localhost:32008
+Or the ArgoCD UI will be available on the specified `NodePort`: https://localhost:32008
 
 Or you can start the port-forward task, to make ArgoCD UI available temporarily: 
    
@@ -203,6 +159,9 @@ Or you can start the port-forward task, to make ArgoCD UI available temporarily:
 Then the ArgoCD UI is accessible at https://localhost:8080
 
 # Login credentials:
+To get password:
+
+    task argocd_pass
 
 ArgoCD credentials:
 username: admin
@@ -222,68 +181,5 @@ Don't forget to port forward first via `task argocdui` if the forwarding process
     argocd login localhost:8080 
     argocd app create cicd-automation-demo --repo https://github.com/majoferenc/demo-cicd-automation-app.git  --dest-server https://kubernetes.default.svc --dest-namespace default  --path chart
 
-## Configure GitHub Webhook tunnel (To be checked)
-
-![Target Schema](/docs/argo-events-diagram.png)
-
-Create Free Ngrok account: https://ngrok.com
-
-Now obtain Ngrok Access Token: https://dashboard.ngrok.com/get-started/your-authtoken
-
-    export NGROK_ACC_TOKEN=<your-token>
-    ngrok config add-authtoken $NGROK_ACC_TOKEN
-    task webhook_tunnel
-
-Don't forget to inject generated Ngrok Public URL into github Argo Event Source `.argo/git_event_source.yaml` and apply the changes.
-
-    apiVersion: argoproj.io/v1alpha1
-    kind: EventSource
-    metadata:
-      name: github
-    spec:
-      selector:
-        eventsource-name: github          # event source name
-      github:
-        example:                   # event name
-          repositories:
-            - owner: <git hub user name>
-              names:
-                - <name of the repo 1>
-                - <name of the repo 2>
-          webhook:
-            endpoint: /example
-            port: "12000"
-            method: POST
-            url: <url that is generated by ngrok>
-          events:
-            - "*"
-          apiToken:
-            name: github-access
-            key: token
-          insecure: true
-          active: true
-          contentType: json
-
-Create GitHub Webhook:
-![GitHub Webhook](/docs/github-webhook-config.png)
-
-After that you can apply the manifests:
-- `.argo/git_event_source.yaml`
-- `.argo/sensor.yaml`
-- `.argo/webhook-eventsource.svc.yaml`
-- `.argo/eventbus.yaml`
-
-Try to commit new changes into your main branch.
-
-## ArgoCD Notifications
-Replace default configmap config `argocd-notifications-cm` in `argocd` namespace with content of:
-- `.argo/argocd-notifications-cm.yaml`
-
-Create Slack Application
-
-Copy Slack Token into secret `argocd-notifications-secret` as shown in file
-- `argocd-notifications-secret.yaml`
-
-![Slack Notifications](/docs/Slack-Argo-Notifications.png)
 
 
