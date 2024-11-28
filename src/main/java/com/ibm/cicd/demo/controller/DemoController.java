@@ -15,6 +15,9 @@ public class DemoController {
     @GetMapping(value = "/hello")
     public String getHelloMessage() {
         logger.info("==> Received GET request for /api/v1/hello");
-        return "Hello from Spring -  TUKE argowve";
+        return "Hello from Spring -  TUKE argowve revision 2";
     }
 }
+
+
+
